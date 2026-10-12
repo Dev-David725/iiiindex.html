@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سيرفر الأدمن المركزي - ديفيد سامي</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background: #010409; color: #e6edf3; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 900px; background: #0d1117; border: 2px solid #238636; border-radius: 12px; padding: 20px; box-shadow: 0 0 25px rgba(35,134,54,0.2); }
+        h1 { color: #58a6ff; text-align: center; margin-bottom: 5px; font-size: 1.6rem; font-family: monospace; }
+        p.status { text-align: center; color: #3fb950; font-size: 0.8rem; margin-bottom: 20px; font-family: monospace; }
+        
+        .btn { background: #238636; color: #fff; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Cairo', sans-serif; margin-bottom: 15px; }
+        .btn-danger { background: #da3633; }
+        
+        .log-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; margin-bottom: 10px; border-right: 4px solid #58a6ff; }
+        .log-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; padding-bottom: 6px; margin-bottom: 6px; font-size: 0.88rem; flex-wrap: wrap; gap: 5px; }
+        .log-body { font-size: 0.85rem; color: #8b949e; line-height: 1.5; }
+        .badge { background: rgba(218,54,51,0.15); color: #f85149; border: 1px solid rgba(218,54,51,0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; display: inline-block; margin: 2px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🟢 [DAVID-SERVER // LIVE-LOGS]</h1>
+        <p class="status">لوحة تحكم السيرفر المركزي - مراقبة اتصالات الطلاب</p>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" onclick="loadLogs()">🔄 تحديث السيرفر</button>
+            <button class="btn btn-danger" onclick="clearLogs()">🗑️ مسح السجلات</button>
+        </div>
+
+        <div id="logsContainer">
+            <p style="color: #6b7280; font-style: italic; font-family: monospace;">لا توجد اتصالات مسجلة بالسيرفر حتى الآن...</p>
+        </div>
+    </div>
+
+    <script>
+        function loadLogs() {
+            let container = document.getElementById('logsContainer');
+            let records = JSON.parse(localStorage.getItem('david_server_logs') || '[]');
+            
+            if(records.length === 0) {
+                container.innerHTML = `<p style="color: #6b7280; font-style: italic; font-family: monospace;">لا توجد اتصالات مسجلة بالسيرفر حتى الآن...</p>`;
+                return;
+            }
+
+            let html = "";
+            records.forEach(r => {
+                let wrongHtml = "";
+                if(r.wrongList && r.wrongList.length > 0) {
+                    r.wrongList.forEach(w => { wrongHtml += `<span class="badge">${w}</span>`; });
+                } else {
+                    wrongHtml = `<span style="color: #3fb950;">لم يسجل أي أخطاء (فل مارك! 🌟)</span>`;
+                }
+
+                html += `<div class="log-card">
+                    <div class="log-head">
+                        <span>👤 الطالب: <b style="color: #f0f6fc;">${r.student}</b> | IP: <code style="color: #79c0ff;">${r.ip}</code></span>
+                        <span style="color: #d4af37; font-weight: bold;">الدرس ${r.lesson} | الدرجة: ${r.score} / ${r.total}</span>
+                    </div>
+                    <div class="log-body">
+                        <p><b>حالة الاختبار:</b> <span style="color: #58a6ff;">${r.status}</span></p>
+                        <p><b>الأسئلة الخطأ (نقص في إيه):</b><br>${wrongHtml}</p>
+                        <p style="margin-top: 4px; font-size: 0.75rem; color: #484f58;">⏱️ ${r.time}</p>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function clearLogs() {
+            if(confirm("هل أنت متأكد من مسح جميع سجلات السيرفر؟")) {
+                localStorage.removeItem('david_server_logs');
+                loadLogs();
+            }
+        }
+
+        window.onload = loadLogs;
+    </script>
+</body>
+</html>
